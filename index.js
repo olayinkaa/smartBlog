@@ -1,20 +1,24 @@
-const express = require('express');
+const express = require('express')
+const mongoose = require('mongoose')
+const bodyParser = require('body-parser')
 
-const app = new express();
+const app = new express()
+const Post = require('./models/Post');
 
+//-------connection to mongoDB-------------------------------------------------------
+mongoose.connect('mongodb://localhost:27017/cleanblogDB',{useNewUrlParser: true})
 
 //setting up edge template engine
-const expressEdge = require('express-edge');
-
-
+const expressEdge = require('express-edge')
 app.use(expressEdge);
-
-app.set('views', `${__dirname}/views`);
-
+app.set('views', `${__dirname}/views`)
 
 //all asset request from browser get it from public directory
-app.use(express.static('public'));
+app.use(express.static('public'))
 
+//-------------body parser--------------------------
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
 
 
 
@@ -22,11 +26,15 @@ app.use(express.static('public'));
 
 //handling routing
 
-app.get('/',(req,res)=>{
+app.get('/',async (req,res)=>{
 
+    const posts = await Post.find({})
     res.render('index',{
-        title:"Smart Blog"
+        title:"Smart Blog",
+        posts
     });
+
+    // console.log(posts)
 
 });
 
@@ -44,6 +52,45 @@ app.get('/post',(req,res)=>{
 
     res.render('post');
 });
+
+app.get('/post/create',(req,res)=>{
+
+    res.render('create');
+});
+
+app.get('/post/:id', async(req,res)=>{
+
+    var id = req.params.id;
+    const post = await Post.findById(id);
+    res.render('post',{
+
+        post
+    });
+
+
+    // const id = req.params.id
+    // Post.findById(id,(err,docs)=>{
+
+    //     if(!err){
+
+    //         res.render('post',{
+                
+    //             post:docs
+    //         });
+    //     }
+    // });
+    
+
+
+});
+
+app.post('/posts/store',(req,res)=>{
+
+    console.log(req.body);
+    res.redirect('/');
+});
+
+
 
 
 
